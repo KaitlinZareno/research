@@ -1,114 +1,42 @@
 # Program To Read video 
 # and Extract Frames 
 
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
-import cv2 
+import cv2
 import os
-import sys, termios, tty, os, time, threading
 
-#global variables
-count = 0
-imgName = ""
-sort = False
-key = 0
+cap = cv2.VideoCapture('my_video-14.mp4')
+count =0
+name = ""
 
-# Function to extract frames 
-def run():
-    FrameCapture(path)
+while(cap.isOpened()):
+    ok, frame = cap.read()
+    #every 5 frames of the video are classified and displayed
+    if (count %5 ==0):
+	    #create a new jpg file of the current frame
+	    cv2.imwrite("frame_%d.jpg" % count, frame) 
+	    name = "frame_" + str(count) + ".jpg"
+	    cv2.imshow(name , frame)
+	    # the 0 in waitKey makes it wait for a keypress before advancing.
+	    # if the key is 'q' it quits out of the program. any other key advances to 		      next frame.
+	    # after every key pressed, get rid of the current image displaying and display 		      the next image that needs to be classified
+	    k = cv2.waitKey(0) & 0xff
+	    if k == ord('q'):
+		print("quit")
+		break
+	    #if k == ord('r'):
+		#print("r pressed")
+		#cv2.destroyAllWindows()
+	    if k == ord('1'):
+		# "./" look in the same directory and concatnate the name of the current 			   frame in order to classify 
+		os.rename("./"+name, "./rat2/"+name)
+		print("image moved to rat2 directory")		
+		cv2.destroyAllWindows()
+	    if k == ord('2'):
+		print("image moved to no_rat2 directory")
+		os.rename("./" +name, "./no_rat2/" +name)
+		cv2.destroyAllWindows()
+    count+=1
 
-
-def FrameCapture(path): 
-    global count
-    global key
-
-    orig_settings = termios.tcgetattr(sys.stdin)
-    tty.setraw(sys.stdin)
-    x = 0
-      
-    # Path to video file 
-    vidObj = cv2.VideoCapture(path) 
-  
-    # checks whether frames were extracted 
-    success = 1
-
-  
-    while success: 
-  
-        # vidObj object calls read 
-        # function extract frames 
-        success, image = vidObj.read() 
-  
-        # Saves the frames with frame-count 
-	if count%5==0:
-        	cv2.imwrite("frame_%d.jpg" % count, image) 
-		imgName = "frame_" + str(count) + ".jpg"
-		img=mpimg.imread(imgName)
-		imgplot = plt.imshow(img)
-		plt.show()
-		if key == "1":
-		    print("RAT")
-		elif key =="2":
-		    print("NO RAT")
-		plt.close('all') 
-  
-        count += 1
-
-	#for x in range (0,count,5):
-		#img=mpimg.imread(imgName)
-		#imgplot = plt.imshow(img)
-		#plt.show()  
-
-def getch():
-    fd = sys.stdin.fileno()
-    old_settings = termios.tcgetattr(fd)
-    try:
-        tty.setraw(sys.stdin.fileno())
-        ch = sys.stdin.read(1)
- 
-    finally:
-        termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
-    return ch
- 
-button_delay = 0.2
-
-def keys():
-    global sort
-    global key 
-
-    while True:
-	char = getch()
-
-	if (char == "p"):
-	    print("Stop!")
-	exit(0)
-
-	if (char == "1"):
-	    print("rat")
-	    sort = True
-            key = char
-	    time.sleep(button_delay)
-
-	elif (char == "2"):
-	    print("no rat")
-	    sort = True
-            key = char
-	    time.sleep(button_delay)
-
-
-  
-# Driver Code 
-if __name__ == '__main__': 
-    path = os.path.expanduser('~/Desktop/sandbox/research/RatVideos/my_video-14.mp4')
-    # Calling the function 
-    FrameCapture(path) 
-
-keyboard = threading.Thread(target = keys)
-gestureLoop = threading.Thread(target = run)
-
-keyboard.start()
-gestureLoop.start()
-
-keyboard.join()
-gestureLoop.join()
+cap.release()
+cv2.destroyAllWindows()
 
